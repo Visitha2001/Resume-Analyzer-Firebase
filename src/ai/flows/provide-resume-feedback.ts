@@ -5,17 +5,19 @@
  * @fileOverview Provides actionable feedback and suggestions for resume improvement based on a job description and resume content.
  *
  * - provideResumeFeedback - A function that generates feedback for resume improvement.
- * - ProvideResumeFeedbackInput - The input type for the provideResumeFeedback function.
- * - ProvideResumeFeedbackOutput - The return type for the provideResumeFeedback function.
+ * - ProvideResumeFeedbackInput - The input type for the provideResumefeedback function.
+ * - ProvideResumeFeedbackOutput - The return type for the provideResumefeedback function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ProvideResumeFeedbackInputSchema = z.object({
-  resumeContent: z
+  resumeDataUri: z
     .string()
-    .describe('The content of the resume to be analyzed.'),
+    .describe(
+      "An image of the resume, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+    ),
   jobDescription: z
     .string()
     .describe('The job description for which the resume will be tailored.'),
@@ -55,11 +57,13 @@ const provideResumeFeedbackPrompt = ai.definePrompt({
   output: {schema: ProvideResumeFeedbackOutputSchema},
   prompt: `You are a professional resume expert providing feedback to job seekers.
 
-  Analyze the following resume content against the provided job description to determine a keyword match score (0-100), how complete the resume is (0-100), and generate actionable feedback for improvement.
+  Analyze the following resume against the provided job description to determine a keyword match score (0-100), how complete the resume is (0-100), and generate actionable feedback for improvement.
 
-  Resume Content: {{{resumeContent}}}
+  Resume:
+  {{media url=resumeDataUri}}
 
-  Job Description: {{{jobDescription}}}
+  Job Description:
+  {{{jobDescription}}}
 
   Provide the keywordMatchScore, completenessScore and feedback in your response.
   Be specific and provide concrete examples.
