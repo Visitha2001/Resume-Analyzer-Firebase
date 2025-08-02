@@ -134,7 +134,7 @@ export default function Home() {
 
       <main className="flex-1 container mx-auto p-4 md:p-8">
         <section className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-primary-foreground/90">Optimize Your Resume in Seconds</h2>
+          <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight text-gradient-animation">Optimize Your Resume in Seconds</h2>
           <p className="mt-4 text-lg text-muted-foreground/90 max-w-3xl mx-auto">
             Upload an image of your resume and paste a job description to get AI-powered feedback, a keyword match score, and tailored suggestions.
           </p>
