@@ -9,41 +9,59 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScoreCircle } from '@/components/score-circle';
 import { Logo } from '@/components/logo';
-import { Lightbulb, Download, FileText, Briefcase, Sparkles, Wand2, UploadCloud, Image as ImageIcon, X } from 'lucide-react';
+import { Lightbulb, Download, FileText, Briefcase, Sparkles, Wand2, UploadCloud, Image as ImageIcon, X, FileType2 } from 'lucide-react';
 import Image from 'next/image';
 
+type ResumeFile = {
+  dataUri: string;
+  name: string;
+  isImage: boolean;
+}
+
 export default function Home() {
-  const [resumeDataUri, setResumeDataUri] = useState<string | null>(null);
+  const [resumeFile, setResumeFile] = useState<ResumeFile | null>(null);
   const [jobDescription, setJobDescription] = useState('');
   const [result, setResult] = useState<ProvideResumeFeedbackOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const processFile = (file: File) => {
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+
+    if (!isImage && !isPdf) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload an image (PNG, JPG) or a PDF file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 4 * 1024 * 1024) { // 4MB limit
+      toast({
+        title: 'File too large',
+        description: 'Please upload a file smaller than 4MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (loadEvent) => {
+      setResumeFile({
+        dataUri: loadEvent.target?.result as string,
+        name: file.name,
+        isImage: isImage
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please upload an image file (PNG, JPG).',
-          variant: 'destructive',
-        });
-        return;
-      }
-      if (file.size > 4 * 1024 * 1024) { // 4MB limit
-        toast({
-          title: 'File too large',
-          description: 'Please upload an image smaller than 4MB.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => {
-        setResumeDataUri(loadEvent.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
     }
   };
 
@@ -55,32 +73,12 @@ export default function Home() {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please upload an image file (PNG, JPG).',
-          variant: 'destructive',
-        });
-        return;
-      }
-      if (file.size > 4 * 1024 * 1024) { // 4MB limit
-        toast({
-          title: 'File too large',
-          description: 'Please upload an image smaller than 4MB.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (loadEvent) => {
-        setResumeDataUri(loadEvent.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
     }
   };
 
   const handleAnalyze = async () => {
-    if (!resumeDataUri || !jobDescription.trim()) {
+    if (!resumeFile || !jobDescription.trim()) {
       toast({
         title: 'Missing Information',
         description: 'Please upload your resume and provide the job description.',
@@ -92,7 +90,7 @@ export default function Home() {
     setResult(null);
     try {
       const response = await provideResumeFeedback({
-        resumeDataUri: resumeDataUri,
+        resumeDataUri: resumeFile.dataUri,
         jobDescription: jobDescription,
       });
       setResult(response);
@@ -124,7 +122,7 @@ export default function Home() {
   };
 
 
-  const canAnalyze = !isLoading && !!resumeDataUri && !!jobDescription.trim();
+  const canAnalyze = !isLoading && !!resumeFile && !!jobDescription.trim();
 
   return (
     <div className="flex flex-col min-h-dvh text-foreground font-body bg-[linear-gradient(45deg,hsl(var(--background)),hsl(var(--primary)/0.2),hsl(var(--accent)/0.2),hsl(var(--background)))] bg-[length:400%_400%] animate-[gradient-animation_15s_ease_infinite]">
@@ -136,7 +134,7 @@ export default function Home() {
         <section className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold font-headline tracking-tight text-gradient-animation">Optimize Your Resume in Seconds</h2>
           <p className="mt-4 text-lg text-muted-foreground/90 max-w-3xl mx-auto">
-            Upload an image of your resume and paste a job description to get AI-powered feedback, a keyword match score, and tailored suggestions.
+            Upload your resume (PDF or image) and paste a job description to get AI-powered feedback, a keyword match score, and tailored suggestions.
           </p>
         </section>
 
@@ -147,24 +145,32 @@ export default function Home() {
                 <FileText className="text-primary" />
                 <span>Your Resume</span>
               </CardTitle>
-              <CardDescription>Upload an image of your resume (JPG, PNG). Max 4MB.</CardDescription>
+              <CardDescription>Upload a PDF or image of your resume (JPG, PNG). Max 4MB.</CardDescription>
             </CardHeader>
             <CardContent>
               <input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/png, image/jpeg"
+                accept="application/pdf, image/png, image/jpeg"
                 className="hidden"
               />
-              {resumeDataUri ? (
+              {resumeFile ? (
                  <div className="relative">
-                   <Image src={resumeDataUri} alt="Resume preview" width={500} height={700} className="rounded-md border" />
+                   {resumeFile.isImage ? (
+                     <Image src={resumeFile.dataUri} alt="Resume preview" width={500} height={700} className="rounded-md border" />
+                   ) : (
+                      <div className="border rounded-md p-8 text-center flex flex-col items-center justify-center min-h-[300px] bg-muted/30">
+                        <FileType2 className="h-16 w-16 text-primary mb-4" />
+                        <p className="font-semibold text-foreground">{resumeFile.name}</p>
+                        <p className="text-sm text-muted-foreground mt-1">PDF document</p>
+                      </div>
+                   )}
                    <Button
                      variant="destructive"
                      size="icon"
                      className="absolute top-2 right-2 rounded-full h-8 w-8"
-                     onClick={() => setResumeDataUri(null)}
+                     onClick={() => setResumeFile(null)}
                    >
                      <X className="h-4 w-4" />
                    </Button>
@@ -177,8 +183,8 @@ export default function Home() {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <UploadCloud className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="font-semibold text-foreground">Drag & drop your resume image here</p>
-                  <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
+                  <p className="font-semibold text-foreground">Drag & drop your resume file here</p>
+                  <p className="text-sm text-muted-foreground mt-1">or click to browse (PDF, PNG, JPG)</p>
                 </div>
               )}
             </CardContent>

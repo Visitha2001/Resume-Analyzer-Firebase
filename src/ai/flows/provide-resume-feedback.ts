@@ -16,7 +16,7 @@ const ProvideResumeFeedbackInputSchema = z.object({
   resumeDataUri: z
     .string()
     .describe(
-      "An image of the resume, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A PDF or image of the resume, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
   jobDescription: z
     .string()
@@ -57,7 +57,7 @@ const provideResumeFeedbackPrompt = ai.definePrompt({
   output: {schema: ProvideResumeFeedbackOutputSchema},
   prompt: `You are a professional resume expert providing feedback to job seekers.
 
-  Analyze the following resume against the provided job description to determine a keyword match score (0-100), how complete the resume is (0-100), and generate actionable feedback for improvement.
+  Analyze the following resume (provided as a PDF or image) against the provided job description to determine a keyword match score (0-100), how complete the resume is (0-100), and generate actionable feedback for improvement.
 
   Resume:
   {{media url=resumeDataUri}}
