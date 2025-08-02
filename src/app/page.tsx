@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, ChangeEvent, DragEvent } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { provideResumeFeedback, ProvideResumeFeedbackOutput } from '@/ai/flows/provide-resume-feedback';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -300,8 +301,8 @@ const ResultsDisplay = ({ result, onDownload }: ResultsDisplayProps) => (
         <CardDescription>Actionable suggestions to improve your resume for this specific job.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="prose prose-sm max-w-none text-foreground whitespace-pre-line">
-          {result.feedback}
+        <div className="prose prose-sm max-w-none text-foreground">
+          <ReactMarkdown>{result.feedback}</ReactMarkdown>
         </div>
       </CardContent>
     </Card>
