@@ -23,6 +23,14 @@ export default function Home() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please upload an image file (PNG, JPG).',
+          variant: 'destructive',
+        });
+        return;
+      }
       if (file.size > 4 * 1024 * 1024) { // 4MB limit
         toast({
           title: 'File too large',
@@ -47,6 +55,14 @@ export default function Home() {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file type',
+          description: 'Please upload an image file (PNG, JPG).',
+          variant: 'destructive',
+        });
+        return;
+      }
       if (file.size > 4 * 1024 * 1024) { // 4MB limit
         toast({
           title: 'File too large',
@@ -98,8 +114,6 @@ export default function Home() {
   
   const handleDownload = () => {
     if (!result) return;
-    // This is a placeholder as we can't reconstruct the document from AI feedback.
-    // In a real app, you might generate a document or provide text to copy.
     const element = document.createElement("a");
     const file = new Blob([`Original resume analyzed. Feedback:\n\n${result.feedback}`], { type: 'text/plain;charset=utf-8' });
     element.href = URL.createObjectURL(file);
@@ -113,21 +127,21 @@ export default function Home() {
   const canAnalyze = !isLoading && !!resumeDataUri && !!jobDescription.trim();
 
   return (
-    <div className="flex flex-col min-h-dvh bg-background text-foreground font-body">
-      <header className="py-4 px-4 md:px-8 border-b border-border/50 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+    <div className="flex flex-col min-h-dvh text-foreground font-body bg-[linear-gradient(45deg,hsl(var(--background)),hsl(var(--primary)/0.2),hsl(var(--accent)/0.2),hsl(var(--background)))] bg-[length:400%_400%] animate-[gradient-animation_15s_ease_infinite]">
+      <header className="py-4 px-4 md:px-8 border-b border-border/20 bg-background/30 backdrop-blur-sm sticky top-0 z-10">
         <Logo />
       </header>
 
       <main className="flex-1 container mx-auto p-4 md:p-8">
         <section className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">Optimize Your Resume in Seconds</h2>
-          <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold font-headline tracking-tight text-primary-foreground/90">Optimize Your Resume in Seconds</h2>
+          <p className="mt-4 text-lg text-muted-foreground/90 max-w-3xl mx-auto">
             Upload an image of your resume and paste a job description to get AI-powered feedback, a keyword match score, and tailored suggestions.
           </p>
         </section>
 
         <div className="grid gap-8 md:grid-cols-2">
-          <Card className="shadow-lg rounded-xl">
+          <Card className="shadow-lg rounded-xl bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <FileText className="text-primary" />
@@ -169,7 +183,7 @@ export default function Home() {
               )}
             </CardContent>
           </Card>
-          <Card className="shadow-lg rounded-xl">
+          <Card className="shadow-lg rounded-xl bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 <Briefcase className="text-primary" />
@@ -180,7 +194,7 @@ export default function Home() {
             <CardContent>
               <Textarea
                 placeholder="Paste the job description here..."
-                className="min-h-[300px] text-sm"
+                className="min-h-[300px] text-sm bg-background/80"
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 aria-label="Job Description"
@@ -209,7 +223,7 @@ export default function Home() {
         {result && !isLoading && <ResultsDisplay result={result} onDownload={handleDownload} />}
       </main>
 
-      <footer className="text-center py-6 text-sm text-muted-foreground border-t">
+      <footer className="text-center py-6 text-sm text-muted-foreground/80 border-t border-border/20">
         <p>&copy; {new Date().getFullYear()} ResumeRefine. All rights reserved.</p>
       </footer>
     </div>
@@ -218,13 +232,13 @@ export default function Home() {
 
 const LoadingState = () => (
   <div className="mt-12">
-    <Skeleton className="h-8 w-1/3 mx-auto mb-8" />
+    <Skeleton className="h-8 w-1/3 mx-auto mb-8 bg-muted/50" />
     <div className="grid gap-8 md:grid-cols-3 mb-8">
-      <Skeleton className="h-48 rounded-xl" />
-      <Skeleton className="h-48 rounded-xl" />
-      <Skeleton className="h-48 rounded-xl" />
+      <Skeleton className="h-48 rounded-xl bg-muted/50" />
+      <Skeleton className="h-48 rounded-xl bg-muted/50" />
+      <Skeleton className="h-48 rounded-xl bg-muted/50" />
     </div>
-    <Skeleton className="h-64 rounded-xl" />
+    <Skeleton className="h-64 rounded-xl bg-muted/50" />
   </div>
 );
 
@@ -235,9 +249,9 @@ interface ResultsDisplayProps {
 
 const ResultsDisplay = ({ result, onDownload }: ResultsDisplayProps) => (
   <section className="mt-12 animate-in fade-in duration-500">
-    <h3 className="text-3xl font-bold text-center font-headline mb-8">Analysis Results</h3>
+    <h3 className="text-3xl font-bold text-center font-headline mb-8 text-primary-foreground/90">Analysis Results</h3>
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mb-8">
-      <Card className="text-center shadow-lg rounded-xl">
+      <Card className="text-center shadow-lg rounded-xl bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Keyword Match</CardTitle>
           <CardDescription>How well your resume keywords align with the job description.</CardDescription>
@@ -247,7 +261,7 @@ const ResultsDisplay = ({ result, onDownload }: ResultsDisplayProps) => (
         </CardContent>
       </Card>
 
-      <Card className="text-center shadow-lg rounded-xl">
+      <Card className="text-center shadow-lg rounded-xl bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Resume Completeness</CardTitle>
           <CardDescription>How detailed and complete your resume is for this role.</CardDescription>
@@ -257,7 +271,7 @@ const ResultsDisplay = ({ result, onDownload }: ResultsDisplayProps) => (
         </CardContent>
       </Card>
       
-      <Card className="text-center shadow-lg rounded-xl flex flex-col justify-center items-center">
+      <Card className="text-center shadow-lg rounded-xl flex flex-col justify-center items-center bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Download Feedback</CardTitle>
           <CardDescription>Download the AI-generated feedback as a text file.</CardDescription>
@@ -271,7 +285,7 @@ const ResultsDisplay = ({ result, onDownload }: ResultsDisplayProps) => (
       </Card>
     </div>
 
-    <Card className="shadow-lg rounded-xl">
+    <Card className="shadow-lg rounded-xl bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           <Lightbulb className="text-primary" />
